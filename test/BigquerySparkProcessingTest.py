@@ -1,32 +1,32 @@
 from unittest import TestCase
 
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType
+from pyspark.sql.functions import date_format
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DateType, DoubleType
+from src.Builders.SparkBuilder import create_spark_session
+from src.Builders.SparkLogger import Log4j
+from src.Processing.BigQuerySparkProcessing import BigQuerySparkProcessing
 
-from src.builders.sparkBuilder import get_spark_session
-from src.builders.sparkLogger import Log4j
-from main import BigquerySparkProcessing
 
-
-class SparkExampleTest(TestCase):
-    spark = get_spark_session()
+class BigQuerySparkProcessingTest(TestCase):
+    spark = create_spark_session()
     logger = Log4j(spark)
 
-
     def test_process_data(self):
-
         commit_table_schema = StructType([
             StructField("repo_name", StringType(), True),
-            StructField("committer", StructType([
-                StructField("time_sec", StringType(), True),
-                StructField("date", TimestampType(), True)
-            ]), True),
+            StructField("time_sec", StringType(), True),
+            StructField("date", TimestampType(), True)
         ])
 
         languages_table_schema = StructType([
             StructField("repo_name", StringType(), True),
-            StructField("language", StructType([
-                StructField("name", StringType(), True)
-            ]), True),
+            StructField("name", StringType(), True)
+        ])
+
+        expected_df_schema = StructType([
+            StructField("language", StringType(), True),
+            StructField("date_commit", DateType(), True),
+            StructField("avg_time", DoubleType(), True)
         ])
 
         commit_table = self.spark.read.schema(commit_table_schema) \
@@ -39,14 +39,17 @@ class SparkExampleTest(TestCase):
             .format("json") \
             .load("data/languages_table.json")
 
-        bigquery_processor = BigquerySparkProcessing(self.logger)
-        df = bigquery_processor.process_data(commit_table, languages_table)
-        bigquery_processor.display_data(df)
-        print(self.spark.sparkContext.getConf().getAll())
+        expected_df = self.spark.read.schema(expected_df_schema) \
+            .option("multiline", "true") \
+            .format("json") \
+            .load("data/expected_df.json") \
+            .withColumn("date_commit", date_format("date_commit", 'yyyy-MM-dd'))  # fix the date type
 
-        df.printSchema()
-        df.show()
+        bigquery_processor = BigQuerySparkProcessing(self.spark, self.logger)
+        result_df = bigquery_processor.process_data(commit_table, languages_table)
 
+        self.assertEqual(result_df.dtypes, expected_df.dtypes,
+                         "Expected Dataframe should contains the same (columns,types) as those of the result Dataframe")
 
-
-
+        self.assertEqual(result_df.collect(), expected_df.collect(),
+                         "Expected Dataframe should be equal to result Dataframe")

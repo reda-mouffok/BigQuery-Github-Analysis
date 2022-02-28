@@ -1,4 +1,5 @@
 class Log4j:
+
     def __init__(self, spark):
         root_class = "spark.apps"
         spark_config = spark.sparkContext.getConf()

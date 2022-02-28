@@ -1,20 +1,14 @@
 [
   {
     "repo_name": "x",
-    "language": {
-      "name": "C"
-    }
+    "name": "C"
   },
   {
     "repo_name": "y",
-    "language": {
-      "name": "C"
-    }
+    "name": "C"
   },
   {
     "repo_name": "Z",
-    "language": {
-      "name": "C++"
-    }
+    "name": "C++"
   }
 ]
