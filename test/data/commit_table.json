@@ -1,0 +1,39 @@
+[
+  {
+    "repo_name": "x",
+    "committer": {
+      "time_sec": "12321312",
+      "date": "2020-01-01"
+    }
+  },
+  {
+    "repo_name": "x",
+    "committer": {
+      "time_sec": "12321320",
+      "date": "2020-02-01"
+    }
+  },
+  {
+    "repo_name": "y",
+    "committer": {
+      "time_sec": "12321324",
+      "date": "2020-01-01"
+    }
+  }
+  ,
+  {
+    "repo_name": "Z",
+    "committer": {
+      "time_sec": "12321324",
+      "date": "2020-01-01"
+    }
+  }
+  ,
+  {
+    "repo_name": "Z",
+    "committer": {
+      "time_sec": "12321329",
+      "date": "2020-01-02"
+    }
+  }
+]
