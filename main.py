@@ -5,14 +5,14 @@ from src.Processing.BigQuerySparkProcessing import BigQuerySparkProcessing
 
 
 def main():
-    # Init job variables
-    # In this job, we took only sample data.
+    # Init job variables.
+    # Only sample data is used.
     project_name = "`bigquery-public-data"
     database = "github_repos"
     commits_table_name = "sample_commits`"
     commits_columns = ["committer.time_sec", "committer.date", "repo_name"]
     languages_table_name = "languages` as l cross join UNNEST(l.language) as language_exploded"
-    # Select only sample data from languages table
+    # Select only sample data from languages table.
     languages_condition = """
                             WHERE repo_name IN (
                                 'tensorflow/tensorflow',
@@ -24,24 +24,27 @@ def main():
                             """
     languages_columns = ["repo_name", "language_exploded.name"]
 
-    # Init the Spark Session
+    # You can provide an hdfs folder.
+    data_folder="data/"
+
+    # Init the Spark Session.
     spark = create_spark_session()
     logger = Log4j(spark)
     logger.info("Pyspark Github Analysis Started")
 
-    # Read public data from BigQuery
+    # Read public data from BigQuery.
     bigquery_processor = BigQuerySparkProcessing(spark, logger)
 
-    # Due to the BigQuery costs, the tables is readen ones and saved.
+    # Due to the BigQuery costs, the table is read only once and saved.
     if not os.path.exists("data/commits"):
         commits_table = bigquery_processor\
             .read_public_data(project_name,
                               database,
                               commits_table_name,
                               commits_columns)
-        commits_table.write.format("orc").mode("overwrite").save("data/commits")
+        commits_table.write.format("orc").mode("overwrite").save(data_folder+"commits")
     else:
-        commits_table = spark.read.format("orc").load("data/commits")
+        commits_table = spark.read.format("orc").load(data_folder+"commits")
 
     if not os.path.exists("data/languages"):
         languages_table = bigquery_processor\
@@ -50,14 +53,14 @@ def main():
                               languages_table_name,
                               languages_columns,
                               languages_condition)
-        languages_table.write.format("orc").mode("overwrite").save("data/languages")
+        languages_table.write.format("orc").mode("overwrite").save(data_folder+"languages")
     else:
-        languages_table = spark.read.format("orc").load("data/languages")
+        languages_table = spark.read.format("orc").load(data_folder+"languages")
 
     # Run the processing of data
     processed_df = bigquery_processor.process_data(commits_table, languages_table)
 
-    # Init config params and save the result into an image
+    # Init filter params and save the result into an image
     max_date = "2015-12-15"
     min_date = "2014-01-01"
     format = "YYYY-MM-dd"

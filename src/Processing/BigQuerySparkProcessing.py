@@ -15,7 +15,7 @@ class BigQuerySparkProcessing:
         self.logger = logger
 
     """
-        This method aims to read data from BigQuery and return a DataFrame
+        This method aims to read data from BigQuery and return a DataFrame.
         
         @spark :      The SparkSession.
         @project :    The project name on GCP.
@@ -24,7 +24,7 @@ class BigQuerySparkProcessing:
         @columns :    The list of the selected columns ( by default select all ).
         @condition :  The condition added to the query ( by default no condition is provided ).
         
-        @return : A DataFrame of the requested table on BigQuery
+        @return : A DataFrame of the requested table on BigQuery.
     """
 
     def read_public_data(self, project_name, database, table, columns="*", condition=" "):
@@ -44,13 +44,13 @@ class BigQuerySparkProcessing:
 
     """
         This method aims to process data by providing a temporal distribution
-        of GitHub commits per language
+        of GitHub commits per language.
 
         @commit_table :      The table containing GitHub commits.
         @languages_table :   The table containing the GitHub repositories 
                              names and their languages.
 
-        @return : DataFrame with temporal distribution 
+        @return : DataFrame with temporal distribution.
     """
 
     def process_data(self, commit_table, languages_table):
@@ -76,7 +76,7 @@ class BigQuerySparkProcessing:
 
 
     """
-        This method aims to display data by generating an image
+        This method aims to display data by generating an image.
 
         @processed_df :      The table containing GitHub commits temporal distribution.
         @lang :              A list of chosen languages to display ( by default take all languages ).

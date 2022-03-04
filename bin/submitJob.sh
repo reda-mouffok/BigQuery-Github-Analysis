@@ -7,5 +7,4 @@
     --executor-cores 2\
     --conf spark.yarn.maxAppAttempts=1\
     --conf spark.driver.maxResultSize=8g\
-    --archives env.tar.gz#ARCHIVE\
-    <local_path>/script.py
+    ../main.py
