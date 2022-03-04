@@ -41,7 +41,6 @@ class BigQuerySparkProcessing:
         df = query_result.to_dataframe()
         return self.spark.createDataFrame(df)
 
-
     """
         This method aims to process data by providing a temporal distribution
         of GitHub commits per language.
@@ -74,7 +73,6 @@ class BigQuerySparkProcessing:
 
         return processed_df
 
-
     """
         This method aims to display data by generating an image.
 
@@ -92,7 +90,6 @@ class BigQuerySparkProcessing:
                      format="yyy-MM-dd",
                      min_date="1970-01-01",
                      max_date="3000-01-01"):
-
         self.logger.info("Displaying data")
 
         # Convert the Spark Dataframe to Pandas dataframe
@@ -128,3 +125,39 @@ class BigQuerySparkProcessing:
         # Saving the result
         plt.savefig('result/bigquery_github_analysis.png', bbox_inches='tight', dpi=150)
         self.logger.info("Image created on the following location : result/bigquery_github_analysis.png ")
+
+    def process_data_withSQL(self, commit_table, languages_table):
+        self.logger.info("Processing data")
+
+        commit_table.createTempView("commit_table")
+        languages_table.createTempView("languages_table")
+
+        processed_df = self.spark.sql("""   
+                with 
+                commit_tmp as (
+                    select 
+                        c.time_sec,
+                        l.name as language,
+                        date_format(c.date,'yyyy-MM-dd') as date_commit
+                    from commit_table c
+                    inner join languages_table l using(repo_name)
+                ), 
+                commit_tmp2 as (
+                    select * , LAG(time_sec) over( PARTITION BY language ORDER BY time_sec ) as previous_time_sec
+                    from commit_tmp         
+                ),
+                commit_tmp3 as (
+                    select * , COALESCE( ( time_sec - previous_time_sec ) , 0 ) as delta_time_sec
+                    from commit_tmp2
+                )
+                select 
+                    language,
+                    date_commit,
+                    avg(delta_time_sec) avg_time
+                from commit_tmp3
+                group by language , date_commit
+                order by date_commit
+            
+            """)
+
+        return processed_df
