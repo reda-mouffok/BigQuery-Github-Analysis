@@ -1,0 +1,3 @@
+spark.app.name : BigQuery Github Analysis
+spark.master : local[2]
+spark.sql.legacy.timeParserPolicy : LEGACY
