@@ -1,4 +1,4 @@
-import configparser
+import yaml
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 
@@ -8,11 +8,15 @@ def create_spark_session():
 
     # Set conf variables
     spark_config = SparkConf()
-    config = configparser.ConfigParser()
-    config.read("conf/app.properties")
 
-    for config_name, config_value in config.items("CONFIGS"):
-        spark_config.set(config_name, config_value)
+
+    with open('conf/app.yaml') as file:
+        try:
+            data = yaml.safe_load(file)
+            for key, value in data.items():
+                spark_config.set(key, value)
+        except yaml.YAMLError as exception:
+            print(exception)
 
     try:
         # Create the Spark Session
